@@ -1,0 +1,153 @@
+---
+title: <span style="color:purple;">"Lost Potential"</span>.
+
+description: "**Youth Unemployment, Education, and National EconomiesAnalyzing GDP, Inflation, and Population Trends in Afghanistan, Czech Republic, Estonia, Niger, Yemen and Slovenia**"
+format: html
+---
+
+### <span style="color:blue;">**Where the story begins**</span>.
+_The story begins by taking a look into the population of the 6 countries I have chosen to focus on. It is important to note that the 6 countries were chosen at either end of the Unemployment level(in adolescents) scales in order to provide a clear picture._
+
+### <span style="color:Green;">Time Series Chart</span>.
+_As you can see below **Afghanistan, Yemen and Niger** have way bigger populations than the other three countries. Some may view this as a <span style="color:green;">POSITIVE</span> however if you continue to read on youll finds this may in fact be a <span style="color:red;">NEGATIVE</span>_
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(plotly)
+library(dplyr)
+
+# Read the data
+metadata <- read.csv("unicef_metadata.csv")
+
+# Convert year to character type
+metadata$year <- as.character(metadata$year)
+
+# List of countries
+countries <- c("Afghanistan", "Yemen", "Niger", "Slovenia", "Czech Republic", "Estonia")
+
+# Filter data for the selected years and countries
+metadata_countries <- metadata %>%
+  filter(as.numeric(year) >= 2016 & as.numeric(year) <= 2022 & country %in% countries)
+
+# Rename the population column
+metadata_countries <- metadata_countries %>%
+  rename(population = Population..total)
+
+# Create a time series chart
+time_series_chart <- plot_ly(metadata_countries, x = ~year, y = ~population, color = ~country, type = 'scatter', mode = 'lines+markers') %>%
+  layout(
+    title = 'Population Over Time for Selected Countries (2016-2022)',
+    xaxis = list(title = 'Year'),
+    yaxis = list(title = 'Population')
+  )
+
+# Print the time series chart
+time_series_chart
+
+```
+
+### <span style="color:green;">*Below is a Bar Chart outlining the Percentage of Adolescents without employment training or education in the 6 countries mentioned in the Introduction.</span>.*
+
+It can be seen clearly in the map that more developed countries such as: 
+**Czech Republic,Slovenia and Estonia** have lower rates of Unemployment Education and Training, while countries such as:
+**Yemen, Afghanistan and Niger** have much higher rates, particularly in terms of <span style="color:red;">Females</span>.
+
+##
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+install.packages("tidyverse")
+
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(conflicted)
+library(plotly)
+#data prep
+data1 <- read.csv("unicef_indicator_1.csv")
+data2 <- read.csv("unicef_indicator_2.csv")
+metadata <- read.csv("unicef_metadata.csv")
+  
+#Indicator 1
+# Read data from CSV files
+unicef_indicator_1 <- read.csv("unicef_indicator_1.csv")
+#remove column named country
+unicef_indicator_1$empty <- NULL
+# Convert to numeric
+unicef_indicator_1$time_period <- as.numeric(unicef_indicator_1$time_period)
+
+ #filter for males
+  library(dplyr)
+males_data <- unicef_indicator_1 %>%
+    dplyr::filter(sex == "Male" & country %in% c("Afghanistan", "Slovenia", "Czech Republic", "Estonia", "Niger", "Slovenia", "Yemen"))
+
+  #filter for females
+females_data <- dplyr::filter(unicef_indicator_1, sex == "Female" & country %in% c("Afghanistan", "Slovenia", "Czech Republic", "Estonia", "Niger", "Slovenia", "Yemen"))
+#Bind both
+combined_data <- rbind(males_data, females_data)
+#BARCHAR OFFICIAL
+filtered_metadata <- dplyr::filter(metadata, country %in% c("Afghanistan", "Slovenia", "Czech Republic", "Estonia", "Niger", "Slovenia", "Yemen") & 
+           year >= 2014 & year <= 2022)
+#plotly
+p <- ggplot(data = combined_data, aes(x = obs_value, y = country, color = sex)) +
+  geom_col(position = "dodge") +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Percentage of People Unemployed (etc.) in Countries According to Sex",
+       x = "Percentage of Unemployed People",
+       y = "Country")
+p <- ggplotly(p)
+p
+```
+### <span style="color:green;"> Below is a **Scatter Plot** depicting a trend between GDP and Life Expectancy. The data has been taken for 6 years beginning in 2016</span>.
+_As you can see from the Scatter Plot a trend is beginning to occur, the three more developed countries have both a higher GDP and a higher life expectancy. It is obvious that a higher level of **Employment Training and Education** may lead to a higher GDP but maybe harder to understand that it increases life expectancy..._ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#scatterplot
+filtered_metadata3 <- metadata %>%
+  dplyr::filter(country %in% c("Afghanistan", "Slovenia", "Czech Republic", "Estonia", "Niger", "Slovenia", "Yemen") & 
+           year >= 2014 & year <= 2022) %>%
+  rename(GDP_per_capita = GDP.per.capita..constant.2015.US..,
+         life_expectancy = Life.expectancy.at.birth..total..years.)
+
+p <- ggplot(data = filtered_metadata3, aes(x = GDP_per_capita, y = life_expectancy, color = country, text = paste("Year:", year))) +
+  geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "red", aes(group = 1))+
+  labs(title = "Scatter Plot of GDP per Capita vs Life Expectancy",
+       x = "GDP per Capita",
+       y = "Life Expectancy")
+p <- ggplotly(p)
+p
+```
+### <span style="color:green;">Below is a **Map chart** showing Inflation levels of the 6 chosen Countries</span>.
+
+_The information is taken from the year 2018 due to this being the latest available data. High inflation often leads to job scarcity for youths, contributing to increased unemployment among adolescents.It appears that only **Yemen** have a high inflation rate and this would align Whereas a low inflation leads to more economic stability. **Niger** is a country that is expieriencing deflation, this too could be a reasoning behind the unemployment in adolescents figures however, other factors could also be too blame_ 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(plotly)
+
+# Sample data
+df <- data.frame(
+  country = c("Afghanistan", "Yemen", "Estonia", "Czech Republic", "Niger", "Slovenia"),
+  latitude = c(33.9391, 15.5527, 58.5953, 49.8175, 17.6078, 46.1512),
+  longitude = c(67.7100, 48.5164, 25.0136, 15.4729, 8.0817, 14.9955),
+  values = c(2.3, 6.7, 2.3, 2.8, -2.5, 1.63)
+)
+
+# Create map chart
+fig <- plot_ly(data = df, type = 'choropleth', locations = ~country, locationmode = "country names", z = ~values, text = ~paste(country, "<br>Level of Inflation:", values), colorscale = 'Blues') %>%
+  plotly::layout(
+    title = "World Map",
+    geo = list(
+      projection = list(type = "natural earth"),
+      showland = TRUE,
+      landcolor = "lightgreen",
+      showocean = TRUE,
+      oceancolor = "lightblue"
+    ),
+    margin = list(l = 0, r = 0, t = 40, b = 0)
+  )
+
+# Show the map
+fig
+```
+### <span style="color:blue;">**In Summary**</span>.
+
+_This story gave a comprehensive analysis of the economic situation of 6 developing nations: **Afghanistan, Yemen, Niger, Estonia, Czech Republic and Slovenia** the Time series chart depicted population growth, while the Bar chart highlighted gender-specific youth unemployment rates. Meanwhile, the Scatter plot illuminated the correlation between GDP and life expectancy. Lastly, the World Map chart visually portrayed inflation rates across different regions, offering insights into economic stability. These visualizations collectively underscored the multifaceted nature of socio-economic challenges faced by developing nations, urging targeted interventions for sustainable development_
+
